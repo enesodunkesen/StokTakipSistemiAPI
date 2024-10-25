@@ -1,0 +1,6 @@
+@StokTakipSistemiAPI_HostAddress = http://localhost:5226
+
+GET {{StokTakipSistemiAPI_HostAddress}}
+Accept: application/json
+
+###
