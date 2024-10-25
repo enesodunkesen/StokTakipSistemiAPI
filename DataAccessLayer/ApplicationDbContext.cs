@@ -56,12 +56,15 @@ namespace StockManagementSystem.DataAccessLayer
             modelBuilder.Entity<Transfer>()
                 .HasOne(t => t.FromWarehouse)
                 .WithMany()
-                .HasForeignKey(t => t.FromWarehouseId);
+                .HasForeignKey(t => t.FromWarehouseId)
+                .OnDelete(DeleteBehavior.NoAction); // Specify no cascade delete
 
             modelBuilder.Entity<Transfer>()
                 .HasOne(t => t.ToWarehouse)
                 .WithMany()
-                .HasForeignKey(t => t.ToWarehouseId);
+                .HasForeignKey(t => t.ToWarehouseId)
+                .OnDelete(DeleteBehavior.NoAction); // Specify no cascade delete
+
         }
     }
 }

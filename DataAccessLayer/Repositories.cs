@@ -9,9 +9,9 @@ namespace StockManagementSystem.DataAccessLayer
 {
     public class ProductRepository : IProductRepository
     {
-        private readonly StockManagementContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public ProductRepository(StockManagementContext context)
+        public ProductRepository(ApplicationDbContext context)
         {
             _context = context;
         }
