@@ -1,4 +1,4 @@
-﻿using System.Data.Entity;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace StockManagementSystem.DataAccessLayer
 {
@@ -12,9 +12,10 @@ namespace StockManagementSystem.DataAccessLayer
         public DbSet<Sale> Sales { get; set; }
         public DbSet<Transfer> Transfers { get; set; }
 
-        public StockManagementContext() : base("name=StockManagementContext") { }
+        public StockManagementContext(DbContextOptions dbContextOptions) : base(dbContextOptions) { }
 
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        //TODO
+        /*protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Product>()
                 .HasRequired(p => p.Category)
@@ -60,6 +61,6 @@ namespace StockManagementSystem.DataAccessLayer
                 .HasRequired(t => t.ToWarehouse)
                 .WithMany()
                 .HasForeignKey(t => t.ToWarehouseId);
-        }
+        }*/
     }
 }
