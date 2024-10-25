@@ -1,4 +1,5 @@
-﻿public class ProductRules
+﻿namespace StokTakipSistemiAPI.BusinessLogicLayer.Rules;
+public class ProductRules
 {
     public bool ValidateProductName(string name)
     {
