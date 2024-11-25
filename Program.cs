@@ -1,5 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
+using StockManagementSystem.DataAccessLayer;
 
 namespace StokTakipSistemiAPI
 {
@@ -16,7 +17,7 @@ namespace StokTakipSistemiAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddDbContext<DbContext>(options =>
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
