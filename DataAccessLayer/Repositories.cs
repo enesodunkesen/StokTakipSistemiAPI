@@ -23,7 +23,12 @@ namespace StockManagementSystem.DataAccessLayer
 
         public async Task<Product> GetByIdAsync(int id)
         {
-            return await _context.Products.FindAsync(id);
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+            {
+                throw new InvalidOperationException($"Product with ID {id} not found.");
+            }
+            return product;
         }
 
         public async Task AddAsync(Product product)
