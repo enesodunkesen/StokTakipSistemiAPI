@@ -1,8 +1,8 @@
 public class ProductService : IProductService
 {
-    private readonly StockManagementSystem.DataAccessLayer.IProductRepository _productRepository;
+    private readonly StokTakipSistemiAPI.DataAccessLayer.Repositories.IProductRepository _productRepository;
 
-    public ProductService(StockManagementSystem.DataAccessLayer.IProductRepository productRepository)
+    public ProductService(StokTakipSistemiAPI.DataAccessLayer.Repositories.IProductRepository productRepository)
     {
         _productRepository = productRepository;
     }
