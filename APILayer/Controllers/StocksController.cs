@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using StockManagementSystem.DataAccessLayer;
+using StokTakipSistemiAPI.APILayer.DTOs.StockDTOs;
+using StokTakipSistemiAPI.APILayer.Mappers;
+using StokTakipSistemiAPI.BusinessLogicLayer.Services;
 
 namespace StokTakipSistemiAPI.APILayer.Controllers
 {
@@ -13,95 +12,38 @@ namespace StokTakipSistemiAPI.APILayer.Controllers
     [ApiController]
     public class StocksController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly StockService _stockService;
 
-        public StocksController(ApplicationDbContext context)
+        public StocksController(StockService stockService)
         {
-            _context = context;
+            _stockService = stockService;
         }
 
         // GET: api/Stocks
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Stock>>> GetStocks()
+        public async Task<ActionResult<IEnumerable<StockDto>>> GetAllStocksAsync()
         {
-            return await _context.Stocks.ToListAsync();
+            var stocks = await _stockService.GetAllStocksAsync();
+            var stocksDtos = stocks.Select(x => StockMapper.MapStockToStockDTO(x)).ToList();
+
+            return Ok(stocksDtos);
         }
 
         // GET: api/Stocks/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Stock>> GetStock(int id)
+        public async Task<ActionResult<StockDto>> GetStockByIdAsync(int id)
         {
-            var stock = await _context.Stocks.FindAsync(id);
+            
+            var stock = await _stockService.GetStockByIdAsync(id);
 
-            if (stock == null)
+            var stockDto = StockMapper.MapStockToStockDTO(stock);
+
+            if (stockDto == null)
             {
                 return NotFound();
             }
 
-            return stock;
+            return stockDto;
         }
-
-        // PUT: api/Stocks/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutStock(int id, Stock stock)
-        {
-            if (id != stock.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(stock).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!StockExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Stocks
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Stock>> PostStock(Stock stock)
-        {
-            _context.Stocks.Add(stock);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetStock", new { id = stock.Id }, stock);
-        }
-
-        // DELETE: api/Stocks/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteStock(int id)
-        {
-            var stock = await _context.Stocks.FindAsync(id);
-            if (stock == null)
-            {
-                return NotFound();
-            }
-
-            _context.Stocks.Remove(stock);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool StockExists(int id)
-        {
-            return _context.Stocks.Any(e => e.Id == id);
-        }
-    }
+}
 }

@@ -1,6 +1,7 @@
-﻿using System;
+﻿using StokTakipSistemiAPI.DataAccessLayer.Entities;
+using System;
 
-public class StockMovement
+public class StockMovement : IEntity
 {
     public int Id { get; set; }
     public int ProductId { get; set; }
@@ -10,5 +11,4 @@ public class StockMovement
     public string MovementType { get; set; }
     public int Quantity { get; set; }
     public DateTime MovementDate { get; set; }
-    public string Note { get; set; }
 }

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using StockManagementSystem.DataAccessLayer;
+using StokTakipSistemiAPI.BusinessLogicLayer.Services;
+using StokTakipSistemiAPI.APILayer.Mappers;
+using StokTakipSistemiAPI.APILayer.DTOs.WarehouseDTOs;
 
 namespace StokTakipSistemiAPI.APILayer.Controllers
 {
@@ -13,95 +10,48 @@ namespace StokTakipSistemiAPI.APILayer.Controllers
     [ApiController]
     public class WarehousesController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly WarehouseService _warehouseService;
 
-        public WarehousesController(ApplicationDbContext context)
+        public WarehousesController(WarehouseService warehouseService)
         {
-            _context = context;
+            _warehouseService = warehouseService;
         }
 
         // GET: api/Warehouses
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Warehouse>>> GetWarehouses()
+        public async Task<ActionResult<IEnumerable<WarehouseDto>>> GetAll()
         {
-            return await _context.Warehouses.ToListAsync();
+            var warehouses = await _warehouseService.GetAllWarehousesAsync();
+
+            var warehouseDtos = warehouses.Select(x => WarehouseMapper.MapWarehouseToWarehouseDto(x)).ToList();
+
+            return Ok(warehouseDtos);
         }
 
         // GET: api/Warehouses/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Warehouse>> GetWarehouse(int id)
+        public async Task<ActionResult<WarehouseDto>> GetById(int id)
         {
-            var warehouse = await _context.Warehouses.FindAsync(id);
+            var warehouse = await _warehouseService.GetWarehouseByIdAsync(id);
 
             if (warehouse == null)
             {
                 return NotFound();
             }
 
-            return warehouse;
-        }
-
-        // PUT: api/Warehouses/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutWarehouse(int id, Warehouse warehouse)
-        {
-            if (id != warehouse.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(warehouse).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!WarehouseExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return Ok(WarehouseMapper.MapWarehouseToWarehouseDto(warehouse));
         }
 
         // POST: api/Warehouses
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Warehouse>> PostWarehouse(Warehouse warehouse)
+        public async Task<ActionResult<Warehouse>> PostWarehouse(WarehouseCreateDto warehouseDto)
         {
-            _context.Warehouses.Add(warehouse);
-            await _context.SaveChangesAsync();
+            var warehouse = WarehouseMapper.MapWarehouseCreateDtoToWareHouse(warehouseDto);
+            
+            await _warehouseService.CreateWarehouseAsync(warehouse);
 
-            return CreatedAtAction("GetWarehouse", new { id = warehouse.Id }, warehouse);
-        }
-
-        // DELETE: api/Warehouses/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteWarehouse(int id)
-        {
-            var warehouse = await _context.Warehouses.FindAsync(id);
-            if (warehouse == null)
-            {
-                return NotFound();
-            }
-
-            _context.Warehouses.Remove(warehouse);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool WarehouseExists(int id)
-        {
-            return _context.Warehouses.Any(e => e.Id == id);
+            return CreatedAtAction("GetById", new { id = warehouse.Id }, WarehouseMapper.MapWarehouseToWarehouseDto(warehouse));
         }
     }
 }

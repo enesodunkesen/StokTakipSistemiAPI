@@ -1,6 +1,6 @@
-﻿using System;
+﻿using StokTakipSistemiAPI.DataAccessLayer.Entities;
 
-public class Stock
+public class Stock : IEntity
 {
     public int Id { get; set; }
     public int ProductId { get; set; }

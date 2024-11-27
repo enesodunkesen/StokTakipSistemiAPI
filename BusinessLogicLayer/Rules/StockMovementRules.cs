@@ -21,10 +21,6 @@
                 throw new ArgumentException("Stok hareket tarihi gelecekte olamaz.");
             }
 
-            if (!string.IsNullOrEmpty(movement.Note) && movement.Note.Length > 250)
-            {
-                throw new ArgumentException("Not 250 karakteri geçemez.");
-            }
         }
     }
 }

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using StockManagementSystem.DataAccessLayer;
+using StokTakipSistemiAPI.APILayer.DTOs.SaleDTOs;
+using StokTakipSistemiAPI.APILayer.Mappers;
+using StokTakipSistemiAPI.BusinessLogicLayer.Services;
 
 namespace StokTakipSistemiAPI.APILayer.Controllers
 {
@@ -13,95 +10,47 @@ namespace StokTakipSistemiAPI.APILayer.Controllers
     [ApiController]
     public class SalesController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly SaleService _saleService;
 
-        public SalesController(ApplicationDbContext context)
+        public SalesController(SaleService saleService)
         {
-            _context = context;
+            _saleService = saleService;
         }
 
         // GET: api/Sales
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Sale>>> GetSales()
+        public async Task<ActionResult<IEnumerable<SaleDto>>> GetAll()
         {
-            return await _context.Sales.ToListAsync();
+            var sales = await _saleService.GetAllSalesAsync();
+
+            var saleDtos = sales.Select(x => SaleMapper.MapSaleToSaleDTO(x)).ToList();
+
+            return Ok(saleDtos);
         }
 
         // GET: api/Sales/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Sale>> GetSale(int id)
+        public async Task<ActionResult<SaleDto>> GetById(int id)
         {
-            var sale = await _context.Sales.FindAsync(id);
+            var sale = await _saleService.GetSaleByIdAsync(id);
 
-            if (sale == null)
+            var saleDto = SaleMapper.MapSaleToSaleDTO(sale);
+
+            if (saleDto == null)
             {
                 return NotFound();
             }
 
-            return sale;
-        }
-
-        // PUT: api/Sales/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutSale(int id, Sale sale)
-        {
-            if (id != sale.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(sale).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!SaleExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return saleDto;
         }
 
         // POST: api/Sales
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Sale>> PostSale(Sale sale)
+        public async Task<ActionResult<Sale>> CreateSale(SaleCreateDto saleDto)
         {
-            _context.Sales.Add(sale);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetSale", new { id = sale.Id }, sale);
-        }
-
-        // DELETE: api/Sales/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSale(int id)
-        {
-            var sale = await _context.Sales.FindAsync(id);
-            if (sale == null)
-            {
-                return NotFound();
-            }
-
-            _context.Sales.Remove(sale);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool SaleExists(int id)
-        {
-            return _context.Sales.Any(e => e.Id == id);
+            //todo
+            throw new NotImplementedException();
         }
     }
 }

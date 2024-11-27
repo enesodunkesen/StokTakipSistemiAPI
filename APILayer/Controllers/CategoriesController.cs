@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using StockManagementSystem.DataAccessLayer;
+﻿using Microsoft.AspNetCore.Mvc;
+using StokTakipSistemiAPI.APILayer.DTOs.CategoryDTOs;
+using StokTakipSistemiAPI.APILayer.Mappers;
+using StokTakipSistemiAPI.BusinessLogicLayer.Services;
+
 
 namespace StokTakipSistemiAPI.APILayer.Controllers
 {
@@ -13,95 +10,50 @@ namespace StokTakipSistemiAPI.APILayer.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly CategoryService _categoryService;
 
-        public CategoriesController(ApplicationDbContext context)
+        public CategoriesController(CategoryService categoryService)
         {
-            _context = context;
+            _categoryService = categoryService;
         }
 
         // GET: api/Categories
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
+        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAll()
         {
-            return await _context.Categories.ToListAsync();
+            var categories =  await _categoryService.GetAllCategoriesAsync();
+
+            var categoryDTOs = categories.Select(category => CategoryMapper.MapCategoryToCategoryDto(category)).ToList();
+
+            return Ok(categoryDTOs);
         }
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Category>> GetCategory(int id)
+        public async Task<ActionResult<CategoryDto>> GetById(int id)
         {
-            var category = await _context.Categories.FindAsync(id);
+            var category = await _categoryService.GetCategoryWithProductsByIdAsync(id);
 
-            if (category == null)
+            var categoryDTO = CategoryMapper.MapCategoryToCategoryDto(category);
+
+            if (categoryDTO == null)
             {
                 return NotFound();
             }
 
-            return category;
-        }
-
-        // PUT: api/Categories/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategory(int id, Category category)
-        {
-            if (id != category.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(category).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CategoryExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return Ok(categoryDTO);
         }
 
         // POST: api/Categories
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Category>> PostCategory(Category category)
+        public async Task<ActionResult<Category>> CreateCategory(CategoryCreateDto categoryDTO)
         {
-            _context.Categories.Add(category);
-            await _context.SaveChangesAsync();
+            var category = CategoryMapper.MapCategoryCreateDtoToCategory(categoryDTO);
 
-            return CreatedAtAction("GetCategory", new { id = category.Id }, category);
-        }
+            await _categoryService.CreateCategoryAsync(category);
 
-        // DELETE: api/Categories/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCategory(int id)
-        {
-            var category = await _context.Categories.FindAsync(id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-
-            _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool CategoryExists(int id)
-        {
-            return _context.Categories.Any(e => e.Id == id);
+            return CreatedAtAction("GetById", new { id = category.Id }, CategoryMapper.MapCategoryToCategoryDto(category));
         }
     }
 }

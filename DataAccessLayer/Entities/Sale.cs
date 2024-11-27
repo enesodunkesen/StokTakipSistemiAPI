@@ -1,6 +1,7 @@
-﻿using System;
+﻿using StokTakipSistemiAPI.DataAccessLayer.Entities;
+using System;
 
-public class Sale
+public class Sale : IEntity
 {
     public int Id { get; set; }
     public decimal TotalAmount { get; set; }

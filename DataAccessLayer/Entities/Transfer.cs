@@ -1,6 +1,7 @@
-﻿using System;
+﻿using StokTakipSistemiAPI.DataAccessLayer.Entities;
+using System;
 
-public class Transfer
+public class Transfer : IEntity
 {
     public int TransferId { get; set; }
     public int ProductId { get; set; }

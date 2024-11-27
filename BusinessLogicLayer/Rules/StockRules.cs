@@ -14,11 +14,6 @@
                 throw new ArgumentException("Stok minimum eşiği negatif olamaz.");
             }
 
-            if (stock.Quantity < stock.MinThreshold)
-            {
-                throw new InvalidOperationException("Stok miktarı minimum eşik seviyesinin altına düşemez.");
-            }
-
             if (stock.UpdatedAt > DateTime.Now)
             {
                 throw new ArgumentException("Güncelleme tarihi gelecekte olamaz.");

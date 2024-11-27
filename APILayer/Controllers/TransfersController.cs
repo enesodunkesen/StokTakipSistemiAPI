@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using StockManagementSystem.DataAccessLayer;
+using StokTakipSistemiAPI.APILayer.Mappers;
+using StokTakipSistemiAPI.APILayer.DTOs;
+using StokTakipSistemiAPI.BusinessLogicLayer.Services;
+using StokTakipSistemiAPI.APILayer.DTOs.TransferDTOs;
 
 namespace StokTakipSistemiAPI.APILayer.Controllers
 {
@@ -13,95 +11,50 @@ namespace StokTakipSistemiAPI.APILayer.Controllers
     [ApiController]
     public class TransfersController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly TransferService _transferService;
 
-        public TransfersController(ApplicationDbContext context)
+        public TransfersController(TransferService transferService)
         {
-            _context = context;
+            _transferService = transferService;
         }
 
         // GET: api/Transfers
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Transfer>>> GetTransfers()
+        public async Task<ActionResult<IEnumerable<TransferDto>>> GetAll()
         {
-            return await _context.Transfers.ToListAsync();
+            var transfers = await _transferService.GetAllTransfersAsync();
+
+            var transferDtos = transfers.Select(x => TransferMapper.MapTransferToTransferDTO(x)).ToList();
+
+            return Ok(transferDtos);
         }
 
         // GET: api/Transfers/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Transfer>> GetTransfer(int id)
+        public async Task<ActionResult<TransferDto>> GetById(int id)
         {
-            var transfer = await _context.Transfers.FindAsync(id);
+            var transfer = await _transferService.GetTransferByIdAsync(id);
+
+            var transferDto = TransferMapper.MapTransferToTransferDTO(transfer);
 
             if (transfer == null)
             {
                 return NotFound();
             }
 
-            return transfer;
+            return Ok(transferDto);
         }
 
-        // PUT: api/Transfers/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutTransfer(int id, Transfer transfer)
-        {
-            if (id != transfer.TransferId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(transfer).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TransferExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
 
         // POST: api/Transfers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Transfer>> PostTransfer(Transfer transfer)
+        public async Task<ActionResult<Transfer>> CrateTransfer(TransferCreateDto transferDto)
         {
-            _context.Transfers.Add(transfer);
-            await _context.SaveChangesAsync();
+            var transfer = TransferMapper.MapTransferCreateDtoToTransfer(transferDto);
+            await _transferService.CreateTransferAsync(transfer);
 
-            return CreatedAtAction("GetTransfer", new { id = transfer.TransferId }, transfer);
-        }
-
-        // DELETE: api/Transfers/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTransfer(int id)
-        {
-            var transfer = await _context.Transfers.FindAsync(id);
-            if (transfer == null)
-            {
-                return NotFound();
-            }
-
-            _context.Transfers.Remove(transfer);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool TransferExists(int id)
-        {
-            return _context.Transfers.Any(e => e.TransferId == id);
+            return CreatedAtAction("GetById", new { id = transfer.TransferId }, TransferMapper.MapTransferToTransferDTO(transfer));
         }
     }
 }

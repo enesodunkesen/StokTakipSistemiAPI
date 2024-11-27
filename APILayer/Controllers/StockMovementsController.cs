@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using StockManagementSystem.DataAccessLayer;
+using StokTakipSistemiAPI.APILayer.DTOs.StockMovementDTOs;
+using StokTakipSistemiAPI.APILayer.Mappers;
+using StokTakipSistemiAPI.BusinessLogicLayer.Services;
+
 
 namespace StokTakipSistemiAPI.APILayer.Controllers
 {
@@ -13,95 +11,52 @@ namespace StokTakipSistemiAPI.APILayer.Controllers
     [ApiController]
     public class StockMovementsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly StockMovementService _stockMovementService;
 
-        public StockMovementsController(ApplicationDbContext context)
+        public StockMovementsController(StockMovementService stockMovementService)
         {
-            _context = context;
+            _stockMovementService = stockMovementService;
         }
 
         // GET: api/StockMovements
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<StockMovement>>> GetStockMovements()
+        public async Task<ActionResult<IEnumerable<StockMovementDto>>> GetAll()
         {
-            return await _context.StockMovements.ToListAsync();
+
+            var stockMovement = await _stockMovementService.GetAllStockMovementsAsync();
+
+            var stockMovementDto = stockMovement.Select(x => StockMovementMapper.MapStockMovementToStockMovementDTO(x)).ToList();
+
+            return Ok(stockMovementDto);
         }
 
         // GET: api/StockMovements/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<StockMovement>> GetStockMovement(int id)
+        public async Task<ActionResult<StockMovementDto>> GetById(int id)
         {
-            var stockMovement = await _context.StockMovements.FindAsync(id);
+            var stockMovement = await _stockMovementService.GetStockMovementByIdAsync(id);
 
-            if (stockMovement == null)
+            var stockMovementDto = StockMovementMapper.MapStockMovementToStockMovementDTO(stockMovement);
+
+            if (stockMovementDto == null)
             {
                 return NotFound();
             }
 
-            return stockMovement;
+            return Ok(stockMovementDto);
         }
 
-        // PUT: api/StockMovements/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutStockMovement(int id, StockMovement stockMovement)
-        {
-            if (id != stockMovement.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(stockMovement).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!StockMovementExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
 
         // POST: api/StockMovements
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<StockMovement>> PostStockMovement(StockMovement stockMovement)
+        public async Task<ActionResult<StockMovement>> Create(StockMovementCreateDto stockMovementDto)
         {
-            _context.StockMovements.Add(stockMovement);
-            await _context.SaveChangesAsync();
+            var stockMovement = StockMovementMapper.MapStockMovementCreateDtoToStockMovement(stockMovementDto);
 
-            return CreatedAtAction("GetStockMovement", new { id = stockMovement.Id }, stockMovement);
-        }
+            await _stockMovementService.CreateStockMovementAsync(stockMovement,stockMovement.MovementType);
 
-        // DELETE: api/StockMovements/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteStockMovement(int id)
-        {
-            var stockMovement = await _context.StockMovements.FindAsync(id);
-            if (stockMovement == null)
-            {
-                return NotFound();
-            }
-
-            _context.StockMovements.Remove(stockMovement);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool StockMovementExists(int id)
-        {
-            return _context.StockMovements.Any(e => e.Id == id);
+            return CreatedAtAction("GetById", new { id = stockMovement.Id }, StockMovementMapper.MapStockMovementToStockMovementDTO(stockMovement));
         }
     }
 }
